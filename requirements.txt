@@ -1,0 +1,10 @@
+fastapi>=0.116,<1.0
+pydantic>=2.10,<3.0
+sqlalchemy>=2.0,<3.0
+uvicorn[standard]>=0.35,<1.0
+pandas>=2.2,<3.0
+numpy>=2.0,<3.0
+vectorbt>=0.27,<1.0
+celery>=5.4,<6.0
+redis>=5.2,<6.0
+psycopg[binary]>=3.2,<4.0
