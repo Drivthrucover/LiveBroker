@@ -90,6 +90,8 @@ def compile_strategy(
         risk_plan=risk_plan,
         execution_plan=execution_plan,
         schedule=schedule,
+        benchmark_symbol=normalized_spec.benchmark.symbol,
+        initial_capital=normalized_spec.backtest.initial_capital,
         data_requirements=data_requirements,
     )
 

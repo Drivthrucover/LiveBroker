@@ -1,5 +1,12 @@
 """Typed domain models for strategy compilation."""
 
+from .backtest_result import (
+    BacktestCurvePoint,
+    BacktestMetrics,
+    BacktestResult,
+    DrawdownPoint,
+    TradeRecord,
+)
 from .compiled_strategy import (
     CompiledSignal,
     CompiledStrategy,
@@ -27,12 +34,16 @@ from .strategy_spec import (
 )
 
 __all__ = [
+    "BacktestCurvePoint",
+    "BacktestMetrics",
+    "BacktestResult",
     "BacktestSpec",
     "BenchmarkSpec",
     "CompiledSignal",
     "CompiledStrategy",
     "DataRequirement",
     "DeploymentSpec",
+    "DrawdownPoint",
     "ExecutionPlan",
     "ExecutionSpec",
     "MetadataSpec",
@@ -46,6 +57,7 @@ __all__ = [
     "SelectionSpec",
     "SignalSpec",
     "StrategySpec",
+    "TradeRecord",
     "UniversePlan",
     "UniverseSpec",
 ]

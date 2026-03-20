@@ -72,4 +72,6 @@ class CompiledStrategy(StrictModel):
     risk_plan: RiskPlan
     execution_plan: ExecutionPlan
     schedule: SchedulePlan
+    benchmark_symbol: str = "SPY"
+    initial_capital: float = 100000.0
     data_requirements: list[DataRequirement] = Field(default_factory=list)
