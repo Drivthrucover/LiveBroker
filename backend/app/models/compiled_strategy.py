@@ -74,4 +74,6 @@ class CompiledStrategy(StrictModel):
     schedule: SchedulePlan
     benchmark_symbol: str = "SPY"
     initial_capital: float = 100000.0
+    backtest_start_date: str | None = None
+    backtest_end_date: str | None = None
     data_requirements: list[DataRequirement] = Field(default_factory=list)

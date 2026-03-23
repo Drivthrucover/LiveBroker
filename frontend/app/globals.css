@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-mist text-ink antialiased;
+  background-image:
+    radial-gradient(circle at top left, rgba(212, 160, 23, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(93, 122, 82, 0.16), transparent 34%),
+    linear-gradient(180deg, #f6f4ee 0%, #edf1ec 48%, #e6ece4 100%);
+}
+
+a {
+  @apply text-olive transition-colors hover:text-clay;
+}
+
+::selection {
+  background: rgba(212, 160, 23, 0.26);
+}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
@@ -43,8 +44,8 @@ class MarketDataService:
         session: requests.Session | None = None,
     ) -> None:
         self.provider = provider
-        self.polygon_api_key = polygon_api_key or os.getenv("POLYGON_API_KEY")
-        self.alpha_vantage_api_key = alpha_vantage_api_key or os.getenv("ALPHAVANTAGE_API_KEY")
+        self.polygon_api_key = polygon_api_key or _get_env_value("POLYGON_API_KEY")
+        self.alpha_vantage_api_key = alpha_vantage_api_key or _get_env_value("ALPHAVANTAGE_API_KEY")
         self.session = session or requests.Session()
 
     def get_historical_data(
@@ -258,3 +259,30 @@ def get_historical_data(
 def get_security_master(provider: ProviderName = "polygon") -> pd.DataFrame:
     service = MarketDataService(provider=provider)
     return service.get_security_master()
+
+
+@lru_cache(maxsize=1)
+def _dotenv_fallback_values() -> dict[str, str]:
+    values: dict[str, str] = {}
+    candidate_paths = [
+        Path.cwd() / ".env",
+        Path.cwd() / ".env.txt",
+        Path.cwd() / "backend" / ".env",
+        Path.cwd() / "backend" / ".env.txt",
+        Path(__file__).resolve().parents[2] / ".env",
+        Path(__file__).resolve().parents[2] / ".env.txt",
+    ]
+    for path in candidate_paths:
+        if not path.exists():
+            continue
+        for raw_line in path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values.setdefault(key.strip(), value.strip())
+    return values
+
+
+def _get_env_value(key: str) -> str | None:
+    return os.getenv(key) or _dotenv_fallback_values().get(key)

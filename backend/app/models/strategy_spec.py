@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -58,7 +58,7 @@ class SignalSpec(StrictModel):
     threshold: float | None = None
     operator: Literal["gt", "gte", "lt", "lte"] | None = None
     invert: bool = False
-    params: dict[str, Any] = Field(default_factory=dict)
+    params: dict[str, str | int | float | bool] = Field(default_factory=dict)
 
     @field_validator("kind")
     @classmethod

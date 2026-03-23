@@ -92,6 +92,8 @@ def compile_strategy(
         schedule=schedule,
         benchmark_symbol=normalized_spec.benchmark.symbol,
         initial_capital=normalized_spec.backtest.initial_capital,
+        backtest_start_date=normalized_spec.backtest.start_date,
+        backtest_end_date=normalized_spec.backtest.end_date,
         data_requirements=data_requirements,
     )
 
