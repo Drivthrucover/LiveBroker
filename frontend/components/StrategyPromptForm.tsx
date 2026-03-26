@@ -72,9 +72,8 @@ export function StrategyPromptForm({
         </label>
       ) : (
         <div className="rounded-[1.4rem] border border-gold/40 bg-gold/10 p-4 text-sm text-black/75">
-          The backend `POST /api/strategy/parse` route currently returns `501 Not Implemented`.
-          Prompt mode is wired correctly, but until the parser service exists, manual JSON mode is
-          the working path.
+          Prompt mode now uses the backend parser to turn natural language into a StrategySpec.
+          Manual JSON remains available as a fallback for deterministic testing.
         </div>
       )}
 
