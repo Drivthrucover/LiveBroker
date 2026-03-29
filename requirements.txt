@@ -10,3 +10,4 @@ redis>=5.2,<6.0
 psycopg[binary]>=3.2,<4.0
 requests>=2.32,<3.0
 openai>=1.68,<2.0
+ibapi>=9.81,<10.0
