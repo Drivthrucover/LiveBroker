@@ -1,0 +1,2 @@
+-r requirements.txt
+ibapi>=9.81,<10.0

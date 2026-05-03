@@ -259,12 +259,10 @@ def _build_metrics(
     equity_curve: pd.Series,
     target_weights: pd.DataFrame,
 ) -> BacktestMetrics:
-    _import_vectorbt()
-    returns_accessor = strategy_returns.vbt.returns(freq="D")
-    cagr = _safe_float(returns_accessor.annualized())
-    sharpe = _safe_float(returns_accessor.sharpe_ratio())
-    sortino = _safe_float(returns_accessor.sortino_ratio())
-    max_drawdown = _safe_float(returns_accessor.max_drawdown())
+    cagr = _safe_float(_annualized_return(strategy_returns))
+    sharpe = _safe_float(_sharpe_ratio(strategy_returns))
+    sortino = _safe_float(_sortino_ratio(strategy_returns))
+    max_drawdown = _safe_float(_max_drawdown(equity_curve))
     turnover = float(target_weights.diff().abs().sum(axis=1).mean())
 
     return BacktestMetrics(
@@ -290,5 +288,39 @@ def _safe_float(value: object) -> float:
     return scalar
 
 
-def _import_vectorbt() -> None:
-    import vectorbt  # noqa: F401
+def _annualized_return(strategy_returns: pd.Series) -> float:
+    cleaned_returns = strategy_returns.fillna(0.0)
+    periods = len(cleaned_returns)
+    if periods == 0:
+        return 0.0
+    total_return = float((1.0 + cleaned_returns).prod())
+    if total_return <= 0.0:
+        return 0.0
+    return total_return ** (TRADING_DAYS_PER_YEAR / periods) - 1.0
+
+
+def _sharpe_ratio(strategy_returns: pd.Series) -> float:
+    cleaned_returns = strategy_returns.fillna(0.0)
+    volatility = float(cleaned_returns.std(ddof=0))
+    if math.isclose(volatility, 0.0, abs_tol=1e-12):
+        return 0.0
+    return math.sqrt(TRADING_DAYS_PER_YEAR) * float(cleaned_returns.mean()) / volatility
+
+
+def _sortino_ratio(strategy_returns: pd.Series) -> float:
+    cleaned_returns = strategy_returns.fillna(0.0)
+    downside_returns = cleaned_returns[cleaned_returns < 0.0]
+    if downside_returns.empty:
+        return 0.0
+    downside_deviation = float(np.sqrt((downside_returns.pow(2).mean())))
+    if math.isclose(downside_deviation, 0.0, abs_tol=1e-12):
+        return 0.0
+    return math.sqrt(TRADING_DAYS_PER_YEAR) * float(cleaned_returns.mean()) / downside_deviation
+
+
+def _max_drawdown(equity_curve: pd.Series) -> float:
+    if equity_curve.empty:
+        return 0.0
+    running_peak = equity_curve.cummax()
+    drawdowns = (equity_curve / running_peak) - 1.0
+    return float(drawdowns.min())
