@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -22,6 +23,11 @@ class StartDeploymentRequest(StrictModel):
 
 @router.post("/start", response_model=PaperDeployment)
 def start_deployment(request: StartDeploymentRequest) -> PaperDeployment:
+    if os.getenv("ENABLE_PAPER_TRADING", "true").lower() != "true":
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Paper trading is disabled in this deployment environment.",
+        )
     try:
         return get_paper_trading_service().start_deployment(request.compiled_strategy)
     except ValueError as exc:

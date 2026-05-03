@@ -7,6 +7,7 @@ type StrategyPromptFormProps = {
   isWorking: boolean;
   status: string;
   error: string | null;
+  primaryActionLabel: string;
   onPromptChange: (value: string) => void;
   onManualSpecChange: (value: string) => void;
   onModeChange: (mode: "prompt" | "manual") => void;
@@ -20,6 +21,7 @@ export function StrategyPromptForm({
   isWorking,
   status,
   error,
+  primaryActionLabel,
   onPromptChange,
   onManualSpecChange,
   onModeChange,
@@ -88,7 +90,7 @@ export function StrategyPromptForm({
         disabled={isWorking}
         className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-olive disabled:cursor-not-allowed disabled:bg-black/40"
       >
-        {isWorking ? status : "Validate and Compile"}
+        {isWorking ? status : primaryActionLabel}
       </button>
     </form>
   );

@@ -1,24 +1,29 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { BacktestMetricsPanel } from "@/components/BacktestMetricsPanel";
 import { DrawdownChart } from "@/components/DrawdownChart";
 import { EquityCurveChart } from "@/components/EquityCurveChart";
-import { runBacktest } from "@/lib/api";
-import { getArtifactById, saveArtifact } from "@/lib/storage";
+import { runBacktest, startPaperDeployment } from "@/lib/api";
+import { getArtifactById, saveArtifact, saveDeployment } from "@/lib/storage";
 import type { StrategyArtifact } from "@/lib/types";
 
 type BacktestReportPageClientProps = {
   id: string;
 };
 
+const PAPER_TRADING_ENABLED = process.env.NEXT_PUBLIC_ENABLE_PAPER_TRADING === "true";
+
 export function BacktestReportPageClient({ id }: BacktestReportPageClientProps) {
+  const router = useRouter();
   const [artifact, setArtifact] = useState<StrategyArtifact | null>(null);
   const [marketDataJson, setMarketDataJson] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [useManualMarketData, setUseManualMarketData] = useState(false);
+  const [isStartingDeployment, setIsStartingDeployment] = useState(false);
 
   useEffect(() => {
     const stored = getArtifactById(id);
@@ -70,6 +75,40 @@ export function BacktestReportPageClient({ id }: BacktestReportPageClientProps) 
       );
     } finally {
       setIsRunning(false);
+    }
+  }
+
+  async function handleStartPaperTrading() {
+    if (!artifact?.compiledStrategy) {
+      setError("A compiled strategy is required before paper trading can start.");
+      return;
+    }
+    if (!artifact.backtestResult) {
+      setError("Run a backtest first before starting paper trading.");
+      return;
+    }
+
+    setError(null);
+    setIsStartingDeployment(true);
+
+    try {
+      const deployment = await startPaperDeployment(artifact.compiledStrategy);
+      saveDeployment({
+        artifactId: artifact.id,
+        artifactLabel: artifact.prompt || `Artifact ${artifact.id.slice(0, 8)}`,
+        deployment,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      router.push("/deployments");
+    } catch (deploymentError) {
+      setError(
+        deploymentError instanceof Error
+          ? deploymentError.message
+          : "Paper deployment failed unexpectedly.",
+      );
+    } finally {
+      setIsStartingDeployment(false);
     }
   }
 
@@ -143,6 +182,42 @@ export function BacktestReportPageClient({ id }: BacktestReportPageClientProps) 
 
       {artifact.backtestResult ? (
         <>
+          {PAPER_TRADING_ENABLED ? (
+            <section className="rounded-[2rem] border border-black/10 bg-white/80 p-8 shadow-panel">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">
+                Deployment
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+                Move from evaluation to paper trading
+              </h2>
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-black/65">
+                Once you are satisfied with the backtest output, send the compiled strategy to the
+                IBKR paper deployment backend. This uses the same compiled artifact you just tested.
+              </p>
+              <button
+                type="button"
+                onClick={handleStartPaperTrading}
+                disabled={isStartingDeployment}
+                className="mt-6 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-olive disabled:cursor-not-allowed disabled:bg-black/40"
+              >
+                {isStartingDeployment ? "Starting Paper Trading..." : "Start Paper Trading"}
+              </button>
+            </section>
+          ) : (
+            <section className="rounded-[2rem] border border-black/10 bg-white/80 p-8 shadow-panel">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">
+                Deployment
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+                Paper trading is disabled in this deployment
+              </h2>
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-black/65">
+                This hosted environment supports research workflows only: prompt parsing,
+                validation, compilation, backtesting, and charts. IBKR deployment can be enabled
+                later in a persistent runtime environment.
+              </p>
+            </section>
+          )}
           <BacktestMetricsPanel metrics={artifact.backtestResult.metrics} />
           {chartPayload ? (
             <EquityCurveChart

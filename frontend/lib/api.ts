@@ -1,6 +1,9 @@
 import type {
   BacktestResult,
   CompiledStrategy,
+  PaperDeployment,
+  StrategyDraft,
+  StrategyDraftSession,
   StrategySpec,
   ValidationResult,
 } from "@/lib/types";
@@ -44,6 +47,39 @@ export async function parsePrompt(prompt: string): Promise<{
   });
 }
 
+export async function startStrategyDraft(prompt: string): Promise<StrategyDraftSession> {
+  return request("/api/strategy/draft/start", {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
+  });
+}
+
+export async function answerStrategyDraft(
+  draft: StrategyDraft,
+  questionKey: string,
+  answer: string,
+): Promise<StrategyDraftSession> {
+  return request("/api/strategy/draft/answer", {
+    method: "POST",
+    body: JSON.stringify({
+      draft,
+      question_key: questionKey,
+      answer,
+    }),
+  });
+}
+
+export async function finalizeStrategyDraft(draft: StrategyDraft): Promise<{
+  strategy_spec: StrategySpec;
+  assumptions: string[];
+  warnings: string[];
+}> {
+  return request("/api/strategy/draft/finalize", {
+    method: "POST",
+    body: JSON.stringify({ draft }),
+  });
+}
+
 export async function validateStrategy(strategySpec: StrategySpec): Promise<ValidationResult> {
   return request("/api/strategy/validate", {
     method: "POST",
@@ -69,6 +105,17 @@ export async function runBacktest(
       compiled_strategy: compiledStrategy,
       strategy_spec: strategySpec,
       market_data: marketData,
+    }),
+  });
+}
+
+export async function startPaperDeployment(
+  compiledStrategy: CompiledStrategy,
+): Promise<PaperDeployment> {
+  return request("/api/deployments/start", {
+    method: "POST",
+    body: JSON.stringify({
+      compiled_strategy: compiledStrategy,
     }),
   });
 }
